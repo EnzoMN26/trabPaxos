@@ -4,7 +4,7 @@ from utils import BallotNumber
 from process import Process
 from commander import Commander
 from scout import Scout
-from message import ProposeMessage,AdoptedMessage,PreemptedMessage
+from message import ProposeMessage,AdoptedMessage,PreemptedMessage,P1bMessage,P2bMessage
 
 class Leader(Process):
     def __init__(self, env, id, config, host, port):
@@ -20,7 +20,7 @@ class Leader(Process):
         if address:
             host, port = address
             scout_id = "scout:{}:{}".format(self.id, self.ballot_number)
-            scout = Scout(self.env, scout_id, self.id, self.config.acceptors, self.ballot_number, host, port)
+            scout = Scout(self.env, scout_id, self.id, self.config.acceptors, self.ballot_number, host, port, self.scoutInbox)
 
     def create_commander(self, slot_number, command):
         address = self.env.get_network_address()
@@ -28,10 +28,10 @@ class Leader(Process):
             host, port = address
             commander_id = "commander:{}:{}:{}".format(self.id, self.ballot_number, slot_number)
             commander = Commander(self.env, commander_id, self.id, self.config.acceptors, self.config.replicas, 
-                                  self.ballot_number, slot_number, command, host, port)
+                                  self.ballot_number, slot_number, command, host, port, self.commandInbox)
 
     def body(self):
-        print "Here I am: ", self.id
+        print("Here I am: ", self.id)
         self.create_scout()
         while True:
             msg = self.getNextMessage()
@@ -40,6 +40,7 @@ class Leader(Process):
                     self.proposals[msg.slot_number] = msg.command
                     if self.active:
                         self.create_commander(msg.slot_number, msg.command)
+                        print("CRIOU COMANDER")
             elif isinstance(msg, AdoptedMessage):
                 if self.ballot_number == msg.ballot_number:
                   pmax = {}
@@ -50,10 +51,16 @@ class Leader(Process):
                   for sn in self.proposals:
                       self.create_commander(sn, self.proposals[sn])
                   self.active = True
+                  print("ADOTADO COMO LIDER")
             elif isinstance(msg, PreemptedMessage):
                 if msg.ballot_number > self.ballot_number:
                     self.active = False
                     self.ballot_number = BallotNumber(msg.ballot_number.round+1, self.id)
                     self.create_scout()
+                    print("PERDEU LIDERANCA")
+            elif isinstance(msg, P1bMessage):
+                self.scoutInbox.put(msg)
+            elif isinstance(msg, P2bMessage):
+                self.commandInbox.put(msg)
             else:
-                print "Leader: unknown msg type"
+                print("Leader: unknown msg type")

@@ -22,7 +22,7 @@ class Replica(Process):
                 if isinstance(self.decisions[self.slot_in-WINDOW],ReconfigCommand):
                     r,a,l = self.decisions[self.slot_in-WINDOW].config.split(';')
                     self.config = Config(r.split(','),a.split(','),l.split(','))
-                    print self.id, ": new config:", self.config
+                    print(self.id, ": new config:", self.config)
             if self.slot_in not in self.decisions:
                 cmd = self.requests.pop(0)
                 self.proposals[self.slot_in] = cmd
@@ -31,6 +31,7 @@ class Replica(Process):
             self.slot_in +=1
 
     def perform(self, cmd):
+        print("PERFORM CHAMADO")
         for s in range(1, self.slot_out):
             if self.decisions[s] == cmd:
                 self.slot_out += 1
@@ -43,6 +44,7 @@ class Replica(Process):
         #print self.id, ": perform",self.slot_out, ":", cmd
         if parts[0] == "newclient":
             self.BankStatus.createClient(parts[1], parts[2])
+            print("criou cliente")
         elif parts[0] == "newaccount":
             if len(parts) == 3:
                 self.BankStatus.createAccount_2(parts[1], parts[2])
@@ -63,13 +65,13 @@ class Replica(Process):
             self.BankStatus.transfer(parts[1], parts[2], parts[3], parts[4])
         elif parts[0] == "fail":
             if parts[2] == self.id.split(" ")[1]:
-                print "Replica", self.id, "fails"
+                print("Replica ", self.id, " fails")
                 self.stop = True
         self.slot_out += 1
 
     def body(self):
         if not self.stop:
-            print "Here I am: ", self.id
+            print("Here I am: ", self.id)
         while True:
             if not self.stop:
                 msg = self.getNextMessage()
@@ -83,6 +85,7 @@ class Replica(Process):
                                 self.requests.append(self.proposals[self.slot_out])
                             del self.proposals[self.slot_out]
                         self.perform(self.decisions[self.slot_out])
+                        print("DECISAO FEITA")
                 else:
-                    print "Replica: unknown msg type"
+                    print("Replica: unknown msg type")
                 self.propose()

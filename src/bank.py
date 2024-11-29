@@ -90,7 +90,7 @@ class bank:
                 self.balance_2(client_id, acc)
     
     def print_and_log(self, msg):
-        print msg
+        print(msg)
         file = open("../logs/"+self.proc_id, "a")
         file.write(msg+"\n")
         file.close()

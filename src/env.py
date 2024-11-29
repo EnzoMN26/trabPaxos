@@ -42,13 +42,16 @@ class Env:
         self.available_addresses.append(address)
 
     def sendMessage(self, dst, msg):
+        print("tentando mandar msg para: ", dst)
         if dst in self.proc_addresses:
+            print(self.proc_addresses[dst])
             host, port = self.proc_addresses[dst]
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect((host, port))
             data = pickle.dumps(msg, protocol=pickle.HIGHEST_PROTOCOL)
             s.sendall(struct.pack('!I', len(data)) + data)
+            print("mandou")
         except Exception as e:
             print("Failed to send message:", e)
         finally:
@@ -71,7 +74,7 @@ class Env:
 
     # Create default configuration
     def create_default(self):
-        print "Using default configuration\n\n"
+        print("Using default configuration\n\n")
         for i in range(NREPLICAS):
             pid = "replica %d" % i
             host, port = self.get_network_address()
@@ -90,13 +93,13 @@ class Env:
   
     # Create custom configuration
     def create_custom(self):
-        print "Using custom configuration\n\n"
+        print("Using custom configuration\n\n")
         try:
             file = open("..\config\\"+sys.argv[1], 'r')
             for line in file:
                 parts = line.split(" ")
                 if line.startswith("REPLICA"):
-                    pid = "replica %d" % int(os.sys.argv[2])
+                    pid = "replica %d" % int(parts[1])
                     self.config.replicas.append(pid)
                     host, port = parts[2].split(":")
                     self.proc_addresses[pid] = (host, int(port))
@@ -104,7 +107,7 @@ class Env:
                         self.proc_addresses.pop(pid)
                         Replica(self, pid, self.config, host, int(port))
                 elif line.startswith("ACCEPTOR"):
-                    pid = "acceptor %d.%d" % (self.c,int(os.sys.argv[2]))
+                    pid = "acceptor %d" % (int(parts[1]))
                     self.config.acceptors.append(pid)
                     host, port = parts[2].split(":")
                     self.proc_addresses[pid] = (host, int(port))
@@ -112,7 +115,7 @@ class Env:
                         self.proc_addresses.pop(pid)
                         Acceptor(self, pid, host, int(port))
                 elif line.startswith("LEADER"):
-                    pid = "leader %d.%d" % (self.c,int(os.sys.argv[2]))
+                    pid = "leader %d" % (int(parts[1]))
                     self.config.leaders.append(pid)
                     host, port = parts[2].split(":")
                     self.proc_addresses[pid] = (host, int(port))
@@ -120,14 +123,14 @@ class Env:
                         self.proc_addresses.pop(pid)
                         Leader(self, pid, self.config, host, int(port))
         except Exception as e:
-            print e
+            print(e)
             self._graceexit()
         finally:
             file.close()
     
     # Run environment
     def run(self):
-        print "\n"
+        print("\n")
         while True:
             try:
                 input = raw_input("\nInput: ")
@@ -140,14 +143,19 @@ class Env:
                 elif input.startswith("newclient"):
                     parts = input.split(" ")
                     if len(parts) != 3:
-                        print "Usage: newclient <client_name> <client_id>"
+                        print("Usage: newclient <client_name> <client_id>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
+                        print("gerou comando")
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            print("a")
+                            for key, val in self.proc_addresses.items():
+                                print("b")
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    print("mandou pra uma replica")
+                                    print(val)
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -157,15 +165,15 @@ class Env:
                 elif input.startswith("newaccount"):
                     parts = input.split(" ")
                     if len(parts) != 3 and len(parts) != 2:
-                        print "Usage: newaccount <client_id> <account_id>"
-                        print "Usage: newaccount <account_id>"
+                        print("Usage: newaccount <client_id> <account_id>")
+                        print("Usage: newaccount <account_id>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            for key, val in self.proc_addresses.items():
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -175,14 +183,14 @@ class Env:
                 elif input.startswith("addaccount"):
                     parts = input.split(" ")
                     if len(parts) != 3:
-                        print "Usage: addaccount <client_id> <account_id>"
+                        print("Usage: addaccount <client_id> <account_id>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            for key, val in self.proc_addresses.items():
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -192,15 +200,15 @@ class Env:
                 elif input.startswith("balance"):
                     parts = input.split(" ")
                     if len(parts) != 2 and len(parts) != 3:
-                        print "Usage: balance <client_id> <account_id>"
-                        print "Usage: balance <client_id>"
+                        print ("Usage: balance <client_id> <account_id>")
+                        print ("Usage: balance <client_id>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            for key, val in self.proc_addresses.items():
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -210,14 +218,14 @@ class Env:
                 elif input.startswith("deposit"):
                     parts = input.split(" ")
                     if len(parts) != 3:
-                        print "Usage: deposit <account_id> <amount>"
+                        print("Usage: deposit <account_id> <amount>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            for key, val in self.proc_addresses.items():
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -227,14 +235,14 @@ class Env:
                 elif input.startswith("withdraw"):
                     parts = input.split(" ")
                     if len(parts) != 4:
-                        print "Usage: withdraw <client_id> <account_id> <amount>"
+                        print("Usage: withdraw <client_id> <account_id> <amount>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            for key, val in self.proc_addresses.items():
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -244,14 +252,14 @@ class Env:
                 elif input.startswith("transfer"):
                     parts = input.split(" ")
                     if len(parts) != 5:
-                        print "Usage: transfer <client_id> <from_account_id> <to_account_id> <amount>"
+                        print("Usage: transfer <client_id> <from_account_id> <to_account_id> <amount>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
-                            for key, val in self.proc_addresses:
+                            for key, val in self.proc_addresses.items():
                                 if key.startswith("replica"):
-                                    self.sendMessage(val,RequestMessage(pid,cmd))
+                                    self.sendMessage(key,RequestMessage(pid,cmd))
                         else:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
@@ -261,7 +269,7 @@ class Env:
                 elif input.startswith("fail"):
                     parts = input.split(" ")
                     if len(parts) != 3:
-                        print "Usage: fail <func> <id>"
+                        print("Usage: fail <func> <id>")
                     else:
                         pid = "client %d.%d" % (self.c,self.perf)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
@@ -308,12 +316,12 @@ class Env:
                 
                 # Default
                 else:
-                    print "Unknown command"
+                    print("Unknown command")
                     self.perf=-1
                 self.perf+=1
             
             except Exception as e:
-                print e
+                print(e)
                 self._graceexit()
 
 # Main
@@ -327,8 +335,8 @@ def main():
         e.create_custom()
         time.sleep(5)
     else:
-        print "Usage: env.py"
-        print "Usage: env.py <config_file> <id> <function>"
+        print("Usage: env.py")
+        print("Usage: env.py <config_file> <id> <function>")
         os._exit(1)
     
     # Reset log files

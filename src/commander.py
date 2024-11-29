@@ -4,8 +4,9 @@ from message import P2aMessage,P2bMessage,PreemptedMessage,DecisionMessage
 from process import Process
 
 class Commander(Process):
-    def __init__(self, env, id, leader, acceptors, replicas, ballot_number, slot_number, command, host, port):
+    def __init__(self, env, id, leader, acceptors, replicas, ballot_number, slot_number, command, host, port, inbox):
         Process.__init__(self, env, id, host, port)
+        self.inbox = inbox
         self.leader = leader
         self.acceptors = acceptors
         self.replicas = replicas
@@ -21,7 +22,7 @@ class Commander(Process):
             waitfor.add(a)
 
         while True:
-            msg = self.getNextMessage()
+            msg = self.inbox.get()
             if isinstance(msg, P2bMessage):
                 if self.ballot_number == msg.ballot_number and msg.src in waitfor:
                     waitfor.remove(msg.src)
