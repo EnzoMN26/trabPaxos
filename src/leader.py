@@ -16,13 +16,16 @@ class Leader(Process):
         self.config = config
         self.env.addProc(self)
         self.idCommander = 0
+        self.idScout = 0
 
     def create_scout(self):
         address = self.env.get_network_address()
         if address:
             host, port = address
             scout_id = "scout:{}:{}".format(self.id, self.ballot_number)
-            scout = Scout(self.env, scout_id, self.id, self.config.acceptors, self.ballot_number, host, port, self.scoutInbox)
+            self.idScout = self.idScout + 1
+            self.scoutInbox[self.idScout] = Queue()
+            scout = Scout(self.env, scout_id, self.id, self.config.acceptors, self.ballot_number, host, port, self.scoutInbox[self.idScout], self.idScout)
 
     def create_commander(self, slot_number, command):
         address = self.env.get_network_address()
@@ -64,7 +67,7 @@ class Leader(Process):
                     self.create_scout()
                     print("PERDEU LIDERANCA")
             elif isinstance(msg, P1bMessage):
-                self.scoutInbox.put(msg)
+                self.scoutInbox[msg.idScout].put(msg)
             elif isinstance(msg, P2bMessage):
                 self.commandInbox[msg.idCommander].put(msg)
             else:

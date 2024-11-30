@@ -9,15 +9,17 @@ class Message:
         return str(self.__dict__)
 
 class P1aMessage(Message):
-    def __init__(self, src, ballot_number):
+    def __init__(self, src, ballot_number, idScout):
         Message.__init__(self, src)
         self.ballot_number = ballot_number
+        self.idScout = idScout
 
 class P1bMessage(Message):
-    def __init__(self, src, ballot_number, accepted):
+    def __init__(self, src, ballot_number, accepted, idScout):
         Message.__init__(self, src)
         self.ballot_number = ballot_number
         self.accepted = accepted
+        self.idScout = idScout
 
 class P2aMessage(Message):
     def __init__(self, src, ballot_number, slot_number, command, idCommander):

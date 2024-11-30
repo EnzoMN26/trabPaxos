@@ -32,10 +32,10 @@ class Replica(Process):
             self.slot_in +=1
 
     def perform(self, cmd):
-        print("PERFORM CHAMADO", cmd)
         for s in range(1, self.slot_out):
             if self.decisions[s] == cmd:
                 self.slot_out += 1
+                print("COMANDO REPETIDO")
                 return
         if isinstance(cmd, ReconfigCommand):
             self.slot_out += 1
@@ -59,6 +59,7 @@ class Replica(Process):
             else:
                 self.BankStatus.balance(parts[1])
         elif parts[0] == "deposit": 
+            print("tentou depositar")
             self.BankStatus.deposit(parts[1], parts[2])
         elif parts[0] == "withdraw":
             self.BankStatus.withdraw(parts[1], parts[2], parts[3])

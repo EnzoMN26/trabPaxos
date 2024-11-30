@@ -20,7 +20,7 @@ class Acceptor(Process):
                 if isinstance(msg, P1aMessage):
                     if msg.ballot_number > self.ballot_number:
                         self.ballot_number = msg.ballot_number
-                    self.sendMessage(msg.src.split(":")[1],P1bMessage(self.id,self.ballot_number,self.accepted))
+                    self.sendMessage(msg.src.split(":")[1],P1bMessage(self.id,self.ballot_number,self.accepted, msg.idScout))
                 elif isinstance(msg, P2aMessage):
                     if msg.ballot_number == self.ballot_number:
                         self.accepted.add(PValue(msg.ballot_number, msg.slot_number, msg.command))

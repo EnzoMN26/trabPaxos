@@ -13,7 +13,7 @@ class Process(Thread):
         self.host = host
         self.port = port
         self.inbox = Queue()
-        self.scoutInbox = Queue()
+        self.scoutInbox = {}
         self.commandInbox = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))
