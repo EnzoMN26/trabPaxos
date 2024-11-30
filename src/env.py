@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Imports
+import time
+from datetime import datetime
 import sys
+import threading
 sys.dont_write_bytecode = True
 import cPickle as pickle
 import os, time, socket, struct
@@ -42,16 +45,13 @@ class Env:
         self.available_addresses.append(address)
 
     def sendMessage(self, dst, msg):
-        print("tentando mandar msg para: ", dst)
         if dst in self.proc_addresses:
-            print(self.proc_addresses[dst])
             host, port = self.proc_addresses[dst]
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect((host, port))
             data = pickle.dumps(msg, protocol=pickle.HIGHEST_PROTOCOL)
             s.sendall(struct.pack('!I', len(data)) + data)
-            print("mandou")
         except Exception as e:
             print("Failed to send message:", e)
         finally:
@@ -127,6 +127,19 @@ class Env:
             self._graceexit()
         finally:
             file.close()
+            
+    def process_deposit(self, pid, input, thread_id, request_id):
+        # Código que será executado em cada requisição
+        cmd = Command(pid,0,input+"#%d.%d" % (int(thread_id),int(request_id)))
+        print("pid: ", pid)
+        if self.dist:
+            for key, val in self.proc_addresses.items():
+                if key.startswith("replica"):
+                    self.sendMessage(key, RequestMessage(pid, cmd))
+        else:
+            for r in self.config.replicas:
+                self.sendMessage(r, RequestMessage(pid, cmd))
+        time.sleep(0.1)  # Simula o tempo de processamento
     
     # Run environment
     def run(self):
@@ -217,10 +230,11 @@ class Env:
                 # Deposit
                 elif input.startswith("deposit"):
                     parts = input.split(" ")
-                    if len(parts) != 3:
+                    if len(parts) < 3:
                         print("Usage: deposit <account_id> <amount>")
-                    else:
+                    elif len(parts) == 3:
                         pid = "client %d.%d" % (self.c,self.perf)
+                        print("pid: ", pid)
                         cmd = Command(pid,0,input+"#%d.%d" % (self.c,self.perf))
                         if self.dist:
                             for key, val in self.proc_addresses.items():
@@ -230,7 +244,44 @@ class Env:
                             for r in self.config.replicas:
                                 self.sendMessage(r,RequestMessage(pid,cmd))
                         time.sleep(1)
+                    elif len(parts) == 5:
+                        #Usage: deposit <account_id> <amount> <number of threads> <number of requests per thread>
+                        try:
+                            account_id = parts[1]
+                            amount = float(parts[2])
+                            num_threads = int(parts[3])
+                            requests_per_thread = int(parts[4])
+                        except ValueError:
+                            print("Invalid input. Ensure amount is a number and the thread/request counts are integers.")
+                            return
+                        
+                        threads = []
+                        timestamps = {i: [] for i in range(num_threads)}  # Dicionário para salvar os timestamps por thread
+                        
+                        def thread_task(thread_id):
+                            for request_id in range(requests_per_thread):
+                                start_time = datetime.now()
+                                timestamps[thread_id].append((request_id, start_time))
+                                pid = "client %d.%d" % (int(thread_id), int(request_id))
+                                self.process_deposit(pid, "deposit %d %d" % (int(account_id), int(amount)), thread_id, request_id)
+                                
+                        for i in range(num_threads):
+                            thread = threading.Thread(target=thread_task, args=(i,))
+                            threads.append(thread)
 
+                        # Inicia as threads
+                        for thread in threads:
+                            thread.start()
+
+                        # Espera todas as threads terminarem
+                        for thread in threads:
+                            thread.join()
+
+                        # Exibe os tempos de execução para cada requisição
+                        for thread_id, times in timestamps.items():
+                            print("\nThread: ", thread_id)
+                            for request_id, start_time in times:
+                                print("  Request ", request_id, " started at ", start_time)
                 # Withdraw
                 elif input.startswith("withdraw"):
                     parts = input.split(" ")
