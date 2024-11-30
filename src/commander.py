@@ -4,7 +4,7 @@ from message import P2aMessage,P2bMessage,PreemptedMessage,DecisionMessage
 from process import Process
 
 class Commander(Process):
-    def __init__(self, env, id, leader, acceptors, replicas, ballot_number, slot_number, command, host, port, inbox):
+    def __init__(self, env, id, leader, acceptors, replicas, ballot_number, slot_number, command, host, port, inbox, idCommander):
         Process.__init__(self, env, id, host, port)
         self.inbox = inbox
         self.leader = leader
@@ -13,12 +13,13 @@ class Commander(Process):
         self.ballot_number = ballot_number
         self.slot_number = slot_number
         self.command = command
-        self.env.addProc(self)
+        self.idCommander = idCommander
+        self.env.addProc(self)        
 
     def body(self):
         waitfor = set()
         for a in self.acceptors:
-            self.sendMessage(a, P2aMessage(self.id, self.ballot_number, self.slot_number, self.command))
+            self.sendMessage(a, P2aMessage(self.id, self.ballot_number, self.slot_number, self.command, self.idCommander))
             waitfor.add(a)
 
         while True:
@@ -29,6 +30,7 @@ class Commander(Process):
                     if len(waitfor) < float(len(self.acceptors))/2:
                         for r in self.replicas:
                             self.sendMessage(r, DecisionMessage(self.id, self.slot_number, self.command))
+                            print("CONFIRMOU PRA REPLICA")
                         return
                 else:
                     self.sendMessage(self.leader, PreemptedMessage(self.id, msg.ballot_number))

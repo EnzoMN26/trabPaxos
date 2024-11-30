@@ -14,7 +14,7 @@ class Process(Thread):
         self.port = port
         self.inbox = Queue()
         self.scoutInbox = Queue()
-        self.commandInbox = Queue()
+        self.commandInbox = {}
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(5)
@@ -37,7 +37,7 @@ class Process(Thread):
                         break
                     try:
                         msg = pickle.loads(data)
-                        print("mensagem no inbox: ", msg)
+                        #print("mensagem no inbox: ", msg)
                         self.inbox.put(msg)
                     except (EOFError, pickle.UnpicklingError) as e:
                         print("Error decoding message")
@@ -63,12 +63,6 @@ class Process(Thread):
 
     def getNextMessage(self):
         return self.inbox.get()
-
-    def getNextMessageScout(self):
-        return self.scoutInbox.get()
-    
-    def getNextMessageCommand(self):
-        return self.commandInbox.get()
 
     def deliver(self, msg):
         self.inbox.put(msg)

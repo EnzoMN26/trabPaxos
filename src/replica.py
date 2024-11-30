@@ -28,10 +28,11 @@ class Replica(Process):
                 self.proposals[self.slot_in] = cmd
                 for ldr in self.config.leaders:
                     self.sendMessage(ldr, ProposeMessage(self.id,self.slot_in,cmd))
+                    print("mandou pro lider")
             self.slot_in +=1
 
     def perform(self, cmd):
-        print("PERFORM CHAMADO")
+        print("PERFORM CHAMADO", cmd)
         for s in range(1, self.slot_out):
             if self.decisions[s] == cmd:
                 self.slot_out += 1

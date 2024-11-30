@@ -20,17 +20,19 @@ class P1bMessage(Message):
         self.accepted = accepted
 
 class P2aMessage(Message):
-    def __init__(self, src, ballot_number, slot_number, command):
+    def __init__(self, src, ballot_number, slot_number, command, idCommander):
         Message.__init__(self, src)
         self.ballot_number = ballot_number
         self.slot_number = slot_number
         self.command = command
+        self.idCommander = idCommander
 
 class P2bMessage(Message):
-    def __init__(self, src, ballot_number, slot_number):
+    def __init__(self, src, ballot_number, slot_number, idCommander):
         Message.__init__(self, src)
         self.ballot_number = ballot_number
         self.slot_number = slot_number
+        self.idCommander = idCommander
 
 class PreemptedMessage(Message):
     def __init__(self, src, ballot_number):

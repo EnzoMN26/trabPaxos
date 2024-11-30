@@ -4,6 +4,7 @@ from utils import BallotNumber
 from process import Process
 from commander import Commander
 from scout import Scout
+from Queue import Queue
 from message import ProposeMessage,AdoptedMessage,PreemptedMessage,P1bMessage,P2bMessage
 
 class Leader(Process):
@@ -14,6 +15,7 @@ class Leader(Process):
         self.proposals = {}
         self.config = config
         self.env.addProc(self)
+        self.idCommander = 0
 
     def create_scout(self):
         address = self.env.get_network_address()
@@ -27,8 +29,10 @@ class Leader(Process):
         if address:
             host, port = address
             commander_id = "commander:{}:{}:{}".format(self.id, self.ballot_number, slot_number)
+            self.idCommander = self.idCommander + 1
+            self.commandInbox[self.idCommander] = Queue()
             commander = Commander(self.env, commander_id, self.id, self.config.acceptors, self.config.replicas, 
-                                  self.ballot_number, slot_number, command, host, port, self.commandInbox)
+                                  self.ballot_number, slot_number, command, host, port, self.commandInbox[self.idCommander], self.idCommander)
 
     def body(self):
         print("Here I am: ", self.id)
@@ -36,6 +40,7 @@ class Leader(Process):
         while True:
             msg = self.getNextMessage()
             if isinstance(msg, ProposeMessage):
+                print("recebeu propose")
                 if msg.slot_number not in self.proposals:
                     self.proposals[msg.slot_number] = msg.command
                     if self.active:
@@ -61,6 +66,6 @@ class Leader(Process):
             elif isinstance(msg, P1bMessage):
                 self.scoutInbox.put(msg)
             elif isinstance(msg, P2bMessage):
-                self.commandInbox.put(msg)
+                self.commandInbox[msg.idCommander].put(msg)
             else:
                 print("Leader: unknown msg type")
