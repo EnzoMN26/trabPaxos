@@ -265,8 +265,26 @@ class Env:
                                 timestamps[thread_id].append((request_id, start_time))
                                 pid = "client %d.%d" % (int(thread_id), int(request_id))
                                 self.process_deposit(pid, "deposit %d %d" % (int(account_id), int(amount)), thread_id, request_id)
-                                random_sleep_time = random.uniform(0, 1)
-                                time.sleep(random_sleep_time)
+                                pidSearch = pid.split(" ")[1]
+                                last_position = 1
+                                while True:
+                                    with open("../logs/replica_0", "r") as log_file:
+                                        # Move para a última posição lida
+                                        log_file.seek(last_position)
+
+                                        # Lê apenas as novas linhas
+                                        new_lines = log_file.readlines()
+                                        last_position = log_file.tell()  # Atualiza a posição no arquivo
+                                        print("PID SEARCH: ", pidSearch)
+                                        print("LINES: ", new_lines)
+                                        
+                                        # Verifica se o PID está nas novas linhas
+                                        if any(pidSearch in line for line in new_lines):
+                                            # PID encontrado no log, prosseguir com a próxima requisição
+                                            break
+
+                                    # Pequeno intervalo antes de checar novamente
+                                    time.sleep(0.1)
                                 
                         for i in range(num_threads):
                             thread = threading.Thread(target=thread_task, args=(i,))

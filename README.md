@@ -10,7 +10,10 @@ COMANDOS CASO QUEIRA ABRIR VARIOS CMDS UM DO LADO DO OUTRO:
 
 - python env.py config0 0 ACCEPTOR
 - python env.py config0 1 ACCEPTOR
+- python env.py config0 2 ACCEPTOR
 - python env.py config0 0 LEADER
+- python env.py config0 1 LEADER
+- python env.py config0 2 LEADER
 - python env.py config0 0 REPLICA
 - python env.py config0 1 REPLICA
 
