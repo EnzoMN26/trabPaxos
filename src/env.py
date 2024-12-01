@@ -255,13 +255,15 @@ class Env:
                             return
                         
                         threads = []
+                        media_vazao_thread = []
+                        media_temp_resp_thread = []
                         timestamps = {i: [] for i in range(num_threads)}  # Dicionário para salvar os timestamps por thread
                         
                         def thread_task(thread_id):
                             response_times = []
                             for request_id in range(requests_per_thread):
-                                random_sleep_time = random.uniform(0, 5)
-                                time.sleep(random_sleep_time)
+                                # random_sleep_time = random.uniform(0, 5)
+                                # time.sleep(random_sleep_time)
                                 start_time = datetime.now()
                                 timestamps[thread_id].append((request_id, start_time))
                                 pid = "client %d.%d" % (int(thread_id), int(request_id))
@@ -290,11 +292,17 @@ class Env:
                                 
                             # Calcula o tempo médio de resposta da thread
                             average_response_time = sum(response_times) / len(response_times)
+                            media_temp_resp_thread.append(average_response_time)
+                            
+                            average_req_por_segundos = len(response_times) / sum(response_times) 
+                            media_vazao_thread.append(average_req_por_segundos)
+                               
 
                             # Loga o tempo médio da thread em um arquivo
                             with open("../logs/thread_response_times.log", "a") as response_log_file:
                                 
-                                response_log_file.write("Thread %d: Tempo médio de resposta = %.2f segundos\n" % (thread_id, average_response_time))
+                                response_log_file.write("Thread %d: Tempo médio de latência = %.2f segundos\n" % (thread_id, average_response_time))
+                                response_log_file.write("Thread %d: Requisições por segundo = %.2f segundos\n" % (thread_id, average_req_por_segundos))
                                     
                         for i in range(num_threads):
                             thread = threading.Thread(target=thread_task, args=(i,))
@@ -314,10 +322,15 @@ class Env:
                         
                         total_requests = num_threads * requests_per_thread
                         throughput = total_requests / total_time
+                        
+                        vazao_total = sum(media_vazao_thread)
+                        latencia_media_total = sum(media_temp_resp_thread) / num_threads
 
                         with open("../logs/thread_response_times.log", "a") as summary_log_file:
                             summary_log_file.write("Tempo total do processo: %.2f segundos\n" % total_time)
-                            summary_log_file.write("Vazão total: %.2f requisições por segundo\n" % throughput)
+                            #summary_log_file.write("Vazão total: %.2f requisições por segundo\n" % throughput)
+                            summary_log_file.write("Vazão total: %.2f requisições por segundo\n" % vazao_total)
+                            summary_log_file.write("Média latência total: %.2f segundos\n" % latencia_media_total)
                             
                         # Exibe os tempos de execução para cada requisição
                         # for thread_id, times in timestamps.items():
