@@ -258,8 +258,9 @@ class Env:
                         timestamps = {i: [] for i in range(num_threads)}  # Dicionário para salvar os timestamps por thread
                         
                         def thread_task(thread_id):
+                            response_times = []
                             for request_id in range(requests_per_thread):
-                                random_sleep_time = random.uniform(0, 10)
+                                random_sleep_time = random.uniform(0, 5)
                                 time.sleep(random_sleep_time)
                                 start_time = datetime.now()
                                 timestamps[thread_id].append((request_id, start_time))
@@ -275,21 +276,31 @@ class Env:
                                         # Lê apenas as novas linhas
                                         new_lines = log_file.readlines()
                                         last_position = log_file.tell()  # Atualiza a posição no arquivo
-                                        print("PID SEARCH: ", pidSearch)
-                                        print("LINES: ", new_lines)
                                         
                                         # Verifica se o PID está nas novas linhas
                                         if any(pidSearch in line for line in new_lines):
+                                            end_time = datetime.now()
+                                            response_time = (end_time - start_time).total_seconds()
+                                            response_times.append(response_time)
                                             # PID encontrado no log, prosseguir com a próxima requisição
                                             break
 
                                     # Pequeno intervalo antes de checar novamente
                                     time.sleep(0.1)
                                 
+                            # Calcula o tempo médio de resposta da thread
+                            average_response_time = sum(response_times) / len(response_times)
+
+                            # Loga o tempo médio da thread em um arquivo
+                            with open("../logs/thread_response_times.log", "a") as response_log_file:
+                                
+                                response_log_file.write("Thread %d: Tempo médio de resposta = %.2f segundos\n" % (thread_id, average_response_time))
+                                    
                         for i in range(num_threads):
                             thread = threading.Thread(target=thread_task, args=(i,))
                             threads.append(thread)
 
+                        process_start_time = datetime.now()
                         # Inicia as threads
                         for thread in threads:
                             thread.start()
@@ -297,12 +308,22 @@ class Env:
                         # Espera todas as threads terminarem
                         for thread in threads:
                             thread.join()
+                            
+                        process_end_time = datetime.now()
+                        total_time = (process_end_time - process_start_time).total_seconds()
+                        
+                        total_requests = num_threads * requests_per_thread
+                        throughput = total_requests / total_time
 
+                        with open("../logs/thread_response_times.log", "a") as summary_log_file:
+                            summary_log_file.write("Tempo total do processo: %.2f segundos\n" % total_time)
+                            summary_log_file.write("Vazão total: %.2f requisições por segundo\n" % throughput)
+                            
                         # Exibe os tempos de execução para cada requisição
-                        for thread_id, times in timestamps.items():
-                            print("\nThread: ", thread_id)
-                            for request_id, start_time in times:
-                                print("  Request ", request_id, " started at ", start_time)
+                        # for thread_id, times in timestamps.items():
+                        #     print("\nThread: ", thread_id)
+                        #     for request_id, start_time in times:
+                        #         print("  Request ", request_id, " started at ", start_time)
                 # Withdraw
                 elif input.startswith("withdraw"):
                     parts = input.split(" ")
