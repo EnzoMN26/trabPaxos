@@ -2,6 +2,7 @@
 
 # Imports
 import time
+import random
 from datetime import datetime
 import sys
 import threading
@@ -48,6 +49,8 @@ class Env:
         if dst in self.proc_addresses:
             host, port = self.proc_addresses[dst]
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(('127.0.0.1', 0)) 
         try:
             s.connect((host, port))
             data = pickle.dumps(msg, protocol=pickle.HIGHEST_PROTOCOL)
@@ -136,10 +139,6 @@ class Env:
             for key, val in self.proc_addresses.items():
                 if key.startswith("replica"):
                     self.sendMessage(key, RequestMessage(pid, cmd))
-        else:
-            for r in self.config.replicas:
-                self.sendMessage(r, RequestMessage(pid, cmd))
-        time.sleep(0.1)  # Simula o tempo de processamento
     
     # Run environment
     def run(self):
@@ -260,10 +259,14 @@ class Env:
                         
                         def thread_task(thread_id):
                             for request_id in range(requests_per_thread):
+                                random_sleep_time = random.uniform(0, 10)
+                                time.sleep(random_sleep_time)
                                 start_time = datetime.now()
                                 timestamps[thread_id].append((request_id, start_time))
                                 pid = "client %d.%d" % (int(thread_id), int(request_id))
                                 self.process_deposit(pid, "deposit %d %d" % (int(account_id), int(amount)), thread_id, request_id)
+                                random_sleep_time = random.uniform(0, 1)
+                                time.sleep(random_sleep_time)
                                 
                         for i in range(num_threads):
                             thread = threading.Thread(target=thread_task, args=(i,))

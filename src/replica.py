@@ -2,8 +2,10 @@ import sys
 sys.dont_write_bytecode = True
 from process import Process
 from bank import bank
+import cPickle as pickle
 from message import ProposeMessage,DecisionMessage,RequestMessage
 from utils import *
+import os, time, socket, struct
 
 class Replica(Process):
     def __init__(self, env, id, config, host, port):
@@ -41,6 +43,7 @@ class Replica(Process):
             self.slot_out += 1
             return
         input = cmd[2].split("#")[0]
+        clientSrc = cmd[2].split("#")[1]
         parts = input.split(" ")
         #print self.id, ": perform",self.slot_out, ":", cmd
         if parts[0] == "newclient":
@@ -60,7 +63,7 @@ class Replica(Process):
                 self.BankStatus.balance(parts[1])
         elif parts[0] == "deposit": 
             print("tentou depositar")
-            self.BankStatus.deposit(parts[1], parts[2])
+            self.BankStatus.deposit(parts[1], parts[2], clientSrc)
         elif parts[0] == "withdraw":
             self.BankStatus.withdraw(parts[1], parts[2], parts[3])
         elif parts[0] == "transfer":

@@ -40,12 +40,12 @@ class bank:
             self.ownerships.append(Ownership(account_id, client_id))
             self.print_and_log("Account with id "+account_id+" added to client with id " +client_id)
     
-    def deposit(self, account_id, amount):
+    def deposit(self, account_id, amount, clientSrc):
         if account_id not in self.accounts:
             self.print_and_log("Account does not exist")
         else:
             self.accounts[account_id].addBalance(amount)
-            self.print_and_log("Deposited "+amount+" in account with id "+account_id)
+            self.print_and_log(clientSrc+": Deposited "+amount+" in account with id "+account_id)
     
     def withdraw(self, client_id, account_id, amount):
         if account_id not in self.accounts:
