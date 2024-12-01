@@ -56,7 +56,7 @@ class Env:
             data = pickle.dumps(msg, protocol=pickle.HIGHEST_PROTOCOL)
             s.sendall(struct.pack('!I', len(data)) + data)
         except Exception as e:
-            print("Failed to send message:", e)
+            print("Failed to send message")
         finally:
             s.close()
 
