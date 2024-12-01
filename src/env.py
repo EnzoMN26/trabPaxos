@@ -262,8 +262,8 @@ class Env:
                         def thread_task(thread_id):
                             response_times = []
                             for request_id in range(requests_per_thread):
-                                # random_sleep_time = random.uniform(0, 5)
-                                # time.sleep(random_sleep_time)
+                                random_sleep_time = random.uniform(0, 10)
+                                time.sleep(random_sleep_time)
                                 start_time = datetime.now()
                                 timestamps[thread_id].append((request_id, start_time))
                                 pid = "client %d.%d" % (int(thread_id), int(request_id))
@@ -323,7 +323,7 @@ class Env:
                         total_requests = num_threads * requests_per_thread
                         throughput = total_requests / total_time
                         
-                        vazao_total = sum(media_vazao_thread)
+                        vazao_total = sum(media_vazao_thread)/10
                         latencia_media_total = sum(media_temp_resp_thread) / num_threads
 
                         with open("../logs/thread_response_times.log", "a") as summary_log_file:
