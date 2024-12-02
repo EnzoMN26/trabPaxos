@@ -262,7 +262,7 @@ class Env:
                         def thread_task(thread_id):
                             response_times = []
                             for request_id in range(requests_per_thread):
-                                # random_sleep_time = random.uniform(0, 5)
+                                # random_sleep_time = random.uniform(0, 2)
                                 # time.sleep(random_sleep_time)
                                 start_time = datetime.now()
                                 timestamps[thread_id].append((request_id, start_time))
@@ -321,7 +321,6 @@ class Env:
                         total_time = (process_end_time - process_start_time).total_seconds()
                         
                         total_requests = num_threads * requests_per_thread
-                        throughput = total_requests / total_time
                         
                         vazao_total = sum(media_vazao_thread)
                         latencia_media_total = sum(media_temp_resp_thread) / num_threads
