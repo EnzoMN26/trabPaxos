@@ -98,7 +98,7 @@ class Env:
     def create_custom(self):
         print("Using custom configuration\n\n")
         try:
-            file = open("..\config\\"+sys.argv[1], 'r')
+            file = open("../config/"+sys.argv[1], 'r')
             for line in file:
                 parts = line.split(" ")
                 if line.startswith("REPLICA"):
