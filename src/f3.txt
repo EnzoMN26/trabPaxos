@@ -21,6 +21,6 @@ Média latência total: 17.13 segundos
 
 C = 200 R = 1
 Tempo total do processo: 25.28 segundos
-Vazão total: 17.29 requisições por segundo
+Vazão total: 17.30 requisições por segundo
 Média latência total: 20.17 segundos
 """
