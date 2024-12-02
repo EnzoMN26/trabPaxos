@@ -1,0 +1,26 @@
+"""
+C = 5 R =1
+Tempo total do processo: 0.56 segundos
+Vazão total: 3.01 requisições por segundo
+Média latência total: 0.11 requisições por segundo
+
+C = 50 R = 1
+Tempo total do processo: 10.81 segundos
+Média vazão total: 6.85 requisições por segundo
+Média latência total: 12.84 requisições por segundo
+
+C = 100 R = 1
+Tempo total do processo: 12.41 segundos
+Média vazão total: 11.22 requisições por segundo
+Média latência total: 22.32 requisições por segundo
+
+C = 150 R = 1
+Tempo total do processo: 30.38 segundos
+Vazão total: 21.72 requisições por segundo
+Média latência total: 24.80 segundos
+
+C = 200 R = 1
+Tempo total do processo: 25.28 segundos
+Vazão total: 17.81 requisições por segundo
+Média latência total: 28.17 segundos
+"""

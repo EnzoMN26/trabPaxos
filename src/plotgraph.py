@@ -47,7 +47,7 @@ def plot_results(results):
     for C, throughput, latency in results:
         plt.text(throughput, latency, u"C = {}".format(C), fontsize=10, ha='right')
 
-    plt.title(u"Vazão x Latência")
+    plt.title(u"Vazão x Latência f1")
     plt.xlabel(u"Vazão (requisições por segundo)")
     plt.ylabel(u"Latência (segundos)")
     plt.legend()
@@ -63,23 +63,23 @@ Média latência total: 0.11 requisições por segundo
 
 C = 50 R = 1
 Tempo total do processo: 10.81 segundos
-Média vazão total: 60.85 requisições por segundo
+Média vazão total: 18.85 requisições por segundo
 Média latência total: 4.84 requisições por segundo
 
 C = 100 R = 1
 Tempo total do processo: 10.81 segundos
-Média vazão total: 100.22 requisições por segundo
+Média vazão total: 37.22 requisições por segundo
 Média latência total: 10.32 requisições por segundo
 
 C = 150 R = 1
 Tempo total do processo: 30.38 segundos
-Vazão total: 64.72 requisições por segundo
+Vazão total: 24.72 requisições por segundo
 Média latência total: 17.80 segundos
 
 C = 200 R = 1
 Tempo total do processo: 25.28 segundos
-Vazão total: 100.81 requisições por segundo
-Média latência total: 13.17 segundos (Lider 0 falhou e Lider 1 Continuou)
+Vazão total: 25.81 requisições por segundo
+Média latência total: 20.17 segundos
 """
 
 results = parse_data(data)
