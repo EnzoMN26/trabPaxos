@@ -261,9 +261,10 @@ class Env:
                         
                         def thread_task(thread_id):
                             response_times = []
+                            sleepTimeCalc = (15*num_threads)/100
                             for request_id in range(requests_per_thread):
-                                # random_sleep_time = random.uniform(0, 2)
-                                # time.sleep(random_sleep_time)
+                                random_sleep_time = random.uniform(0, sleepTimeCalc)
+                                time.sleep(random_sleep_time)
                                 start_time = datetime.now()
                                 timestamps[thread_id].append((request_id, start_time))
                                 pid = "client %d.%d" % (int(thread_id), int(request_id))
